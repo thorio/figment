@@ -139,8 +139,23 @@ impl Value {
     pub fn find(self, path: &str) -> Option<Value> {
         fn find(mut keys: Split<char>, value: Value) -> Option<Value> {
             match keys.next() {
-                Some(k) if !k.is_empty() => find(keys, value.into_dict()?.remove(k)?),
-                Some(_) | None => Some(value)
+                Some(k) if !k.is_empty() => find(keys, get_value(k, value)?),
+                Some(_) | None => Some(value),
+            }
+        }
+
+        fn get_value(key: &str, value: Value) -> Option<Value> {
+            match value {
+                Value::Dict(_, mut dict) => dict.remove(key),
+                Value::Array(_, mut array) => {
+                    let index = key.parse().ok()?;
+                    if index >= array.len() {
+                        return None;
+                    }
+
+                    Some(array.swap_remove(index))
+                }
+                _ => None,
             }
         }
 
