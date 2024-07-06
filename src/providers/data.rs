@@ -3,13 +3,13 @@ use std::path::{Path, PathBuf};
 
 use serde::de::{self, DeserializeOwned};
 
-use crate::value::{Map, Dict};
-use crate::{Error, Profile, Provider, Metadata};
+use crate::value::{Dict, Map};
+use crate::{Error, Metadata, Profile, Provider};
 
 #[derive(Debug, Clone)]
 enum Source {
     File(Option<PathBuf>),
-    String(String)
+    String(String),
 }
 
 /// A `Provider` that sources values from a file or string in a given
@@ -70,7 +70,11 @@ pub struct Data<F: Format> {
 
 impl<F: Format> Data<F> {
     fn new(source: Source, profile: Option<Profile>) -> Self {
-        Data { source, profile, _format: PhantomData }
+        Data {
+            source,
+            profile,
+            _format: PhantomData,
+        }
     }
 
     /// Returns a `Data` provider that sources its values by parsing the file at
@@ -114,7 +118,7 @@ impl<F: Format> Data<F> {
             if path.is_absolute() {
                 match path.is_file() {
                     true => return Some(path.to_path_buf()),
-                    false => return None
+                    false => return None,
                 }
             }
 
@@ -167,7 +171,10 @@ impl<F: Format> Data<F> {
     /// });
     /// ```
     pub fn file_exact<P: AsRef<Path>>(path: P) -> Self {
-        Data::new(Source::File(Some(path.as_ref().to_owned())), Some(Profile::Default))
+        Data::new(
+            Source::File(Some(path.as_ref().to_owned())),
+            Some(Profile::Default),
+        )
     }
 
     /// Returns a `Data` provider that sources its values by parsing the string
@@ -282,7 +289,7 @@ impl<F: Format> Provider for Data<F> {
         match &self.source {
             String(_) => Metadata::named(format!("{} source string", F::NAME)),
             File(None) => Metadata::named(format!("{} file", F::NAME)),
-            File(Some(p)) => Metadata::from(format!("{} file", F::NAME), &**p)
+            File(Some(p)) => Metadata::from(format!("{} file", F::NAME), &**p),
         }
     }
 
@@ -439,7 +446,7 @@ impl YamlExtended {
     /// This "YAML Extended" format parser implements the draft ["Merge Key
     /// Language-Independent Type for YAML™ Version
     /// 1.1"](https://yaml.org/type/merge.html) spec via
-    /// [`serde_yaml::Value::apply_merge()`]. This method is _not_ intended to
+    /// [`serde_yml::Value::apply_merge()`]. This method is _not_ intended to
     /// be used directly but rather indirectly by making use of `YamlExtended`
     /// as a provider. The extension is not part of any officially supported
     /// YAML release and is deprecated entirely since YAML 1.2. Using
@@ -511,14 +518,14 @@ impl YamlExtended {
     ///     Ok(())
     /// });
     /// ```
-    pub fn from_str<'de, T: DeserializeOwned>(s: &'de str) -> serde_yaml::Result<T> {
-        let mut value: serde_yaml::Value = serde_yaml::from_str(s)?;
+    pub fn from_str<'de, T: DeserializeOwned>(s: &'de str) -> serde_yml::Result<T> {
+        let mut value: serde_yml::Value = serde_yml::from_str(s)?;
         value.apply_merge()?;
         T::deserialize(value)
     }
 }
 
 impl_format!(Toml "TOML"/"toml": toml_edit::de::from_str, toml_edit::de::Error);
-impl_format!(Yaml "YAML"/"yaml": serde_yaml::from_str, serde_yaml::Error);
+impl_format!(Yaml "YAML"/"yaml": serde_yml::from_str, serde_yml::Error);
 impl_format!(Json "JSON"/"json": serde_json::from_str, serde_json::error::Error);
-impl_format!(YamlExtended "YAML Extended"/"yaml": YamlExtended::from_str, serde_yaml::Error);
+impl_format!(YamlExtended "YAML Extended"/"yaml": YamlExtended::from_str, serde_yml::Error);
