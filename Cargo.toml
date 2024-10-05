@@ -14,7 +14,7 @@ categories = ["config"]
 [features]
 env = ["pear", "parse-value"]
 json = ["serde_json"]
-yaml = ["serde_yaml"]
+yaml = ["serde_yml"]
 parse-value = ["pear"]
 test = ["tempfile", "parking_lot"]
 # toml = ["toml"]
@@ -25,7 +25,7 @@ uncased = "0.9.3"
 pear = { version = "0.2", optional = true }
 toml = { version = "0.8", optional = true }
 serde_json = { version = "1.0", optional = true }
-serde_yaml = { version = "0.9", optional = true }
+serde_yml = { version = "0.0.12", optional = true }
 tempfile = { version = "3", optional = true }
 parking_lot = { version = "0.12", optional = true }
 
